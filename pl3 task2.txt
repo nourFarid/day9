@@ -1,0 +1,109 @@
+Q1:
+import scala.io.StdIn
+
+object BinaryToDecimalConverter extends App {
+
+  // Function to convert binary to decimal
+  def binaryToDecimal(binary: String): Int = {
+    Integer.parseInt(binary, 2)
+  }
+
+  // Taking input from the user
+  print("Enter a binary number: ")
+  val binaryInput = StdIn.readLine()
+
+  // Validating the input
+  if (binaryInput.matches("[01]+")) {
+    // Converting binary to decimal and displaying the result
+    val decimalOutput = binaryToDecimal(binaryInput)
+    println(s"The decimal equivalent of $binaryInput is $decimalOutput")
+  } else {
+    println("Invalid binary input. Please enter a valid binary number.")
+  }
+}
+
+
+
+
+Q2:
+import akka.actor.{Actor, ActorSystem, Props}
+
+case class AddToCart(item: String)
+case class RemoveFromCart(item: String)
+case object GetCartItems
+
+class Item extends Actor {
+  var items: Set[String] = Set.empty
+
+  def receive: Receive = {
+    case AddToCart(item) =>
+      items += item
+      printItems()
+
+    case RemoveFromCart(item) =>
+      items -= item
+      printItems()
+
+    case GetCartItems =>
+      printItems()
+  }
+
+  private def printItems(): Unit = {
+    // You can modify this method to log or print items as needed
+    println(s"Items in ${self.path.name}: $items")
+  }
+}
+
+class ShoppingCart extends Actor {
+  var items: Set[String] = Set.empty
+
+  def receive: Receive = {
+    case AddToCart(item) =>
+      items += item
+      printItems()
+
+    case RemoveFromCart(item) =>
+      items -= item
+      printItems()
+
+    case GetCartItems =>
+      printItems()
+
+    case otherMessage =>
+      // Handle unexpected messages
+      context.system.log.warning(s"Received unexpected message: $otherMessage")
+  }
+
+  private def printItems(): Unit = {
+    // You can modify this method to log or print items as needed
+    println(s"Items in ${self.path.name}: $items")
+  }
+}
+
+object ShoppingApp extends App {
+  val system = ActorSystem("ShoppingSystem")
+
+  // Create a shopping cart actor
+  val shoppingCart = system.actorOf(Props[ShoppingCart], "shoppingCart")
+
+  // Create item actors
+  val item1 = system.actorOf(Props[Item], "item1")
+  val item2 = system.actorOf(Props[Item], "item2")
+
+  // Add items to the shopping cart
+  shoppingCart ! AddToCart("ProductA")
+  shoppingCart ! AddToCart("ProductB")
+
+  // Get current items in the cart
+  
+  shoppingCart ! GetCartItems
+
+
+  // Remove an item from the shopping cart
+  shoppingCart ! RemoveFromCart("ProductA")
+
+  // Get current items in the cart after removal
+  shoppingCart ! GetCartItems
+
+  system.terminate()
+}
